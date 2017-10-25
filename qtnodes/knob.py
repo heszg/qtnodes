@@ -1,7 +1,8 @@
 """Knob classes."""
 
-from PySide import QtGui
-from PySide import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
 
 from .helpers import getTextSize
 from .exceptions import KnobConnectionError, UnknownFlowError
@@ -13,10 +14,16 @@ FLOW_LEFT_TO_RIGHT = "flow_left_to_right"
 FLOW_RIGHT_TO_LEFT = "flow_right_to_left"
 
 
-class Knob(QtGui.QGraphicsItem):
+class Knob(QtWidgets.QGraphicsItem):
     """A Knob is a socket of a Node and can be connected to other Knobs."""
 
     def __init__(self, **kwargs):
+        if 'name' in kwargs:
+            self.name = kwargs['name']
+            del kwargs['name']
+        else:
+            self.name = 'value'
+            
         super(Knob, self).__init__(**kwargs)
         self.x = 0
         self.y = 0
@@ -28,7 +35,6 @@ class Knob(QtGui.QGraphicsItem):
 
         self.maxConnections = -1  # A negative value means 'unlimited'.
 
-        self.name = "value"
         self.displayName = self.name
 
         self.labelColor = QtGui.QColor(10, 10, 10)
@@ -93,7 +99,7 @@ class Knob(QtGui.QGraphicsItem):
 
     def boundingRect(self):
         """Return the bounding box of this Knob."""
-        rect = QtCore.QRect(self.x,
+        rect = QtCore.QRectF(self.x,
                             self.y,
                             self.w,
                             self.h)
@@ -145,7 +151,7 @@ class Knob(QtGui.QGraphicsItem):
 
     def mousePressEvent(self, event):
         """Handle Edge creation."""
-        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+        if event.button() == QtCore.Qt.LeftButton:
             print("create edge")
 
             self.newEdge = Edge()
@@ -171,11 +177,11 @@ class Knob(QtGui.QGraphicsItem):
           connection logic, for which we should probably have a more
           flexible approach.
         """
-        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+        if event.button() == QtCore.Qt.LeftButton:
 
             node = self.parentItem()
             scene = node.scene()
-            target = scene.itemAt(event.scenePos())
+            target = scene.itemAt(event.scenePos(), QtGui.QTransform() )
 
             try:
                 if self.newEdge and target:

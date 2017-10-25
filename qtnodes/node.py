@@ -2,20 +2,27 @@
 
 import uuid
 
-from PySide import QtGui
-from PySide import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
 
 from .helpers import getTextSize
 from .knob import Knob, InputKnob, OutputKnob
 from .exceptions import DuplicateKnobNameError
 
 
-class Node(QtGui.QGraphicsItem):
+class Node(QtWidgets.QGraphicsItem):
     """A Node is a container for a header and 0-n Knobs.
 
     It can be created, removed and modified by the user in the UI.
     """
     def __init__(self, **kwargs):
+        if 'scene' in kwargs:
+            myScene = kwargs['scene']
+            del kwargs['scene']
+        else:
+            myScene = None
+            
         super(Node, self).__init__(**kwargs)
 
         # This unique id is useful for serialization/reconstruction.
@@ -34,14 +41,17 @@ class Node(QtGui.QGraphicsItem):
         self.fillColor = QtGui.QColor(220, 220, 220)
 
         # General configuration.
-        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable)
-        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
 
         self.setCursor(QtCore.Qt.SizeAllCursor)
 
         self.setAcceptHoverEvents(True)
         self.setAcceptTouchEvents(True)
         self.setAcceptDrops(True)
+        
+        if ( myScene ):
+            myScene.addItem( self )
 
     def knobs(self, cls=None):
         """Return a list of childItems that are Knob objects.
@@ -73,7 +83,7 @@ class Node(QtGui.QGraphicsItem):
         active when hovering its Header, as otherwise there would be conflicts
         with the hover events for the Node's Knobs.
         """
-        rect = QtCore.QRect(self.x,
+        rect = QtCore.QRectF(self.x,
                             self.y,
                             self.w,
                             self.header.h)
